@@ -32,6 +32,9 @@ public class Game : GameWindow
     private int _frames, _lastFrames;
     private bool _titleDirty = true;
 
+    private SceneObject _satelit = null!;
+    private float _unghiOrbita;
+
     public Game(int width, int height, string title)
         : base(GameWindowSettings.Default,
                new NativeWindowSettings
@@ -70,6 +73,8 @@ public class Game : GameWindow
                   new Transform2D { Position = new Vector2(2.0f, 1.0f) });
         AddObject("cerc", Shapes.RegularPolygon(64, 0.5f),
                   new Transform2D { Position = new Vector2(0.8f, -0.6f), Depth = 2.0f });
+        
+        _satelit = new SceneObject("satelit", Shapes.Triangle(), new Transform2D()); // nu il pun in _scene ca sa nu-l prinda Tab
     }
 
     /// <summary>Adaugă un obiect în scenă și reține transformarea lui inițială (pentru tasta R).</summary>
@@ -158,6 +163,8 @@ public class Game : GameWindow
             sel.Transform.Rotation += unghi; // ca sa se uite mereu la fel spre pivot, ca Luna
         }
 
+        _unghiOrbita = (_unghiOrbita + 90.0f * dt) % 360.0f; // 360 de grade in 4 secunde
+
         // --- Camera: tastatura și rotița (secțiunea 6.2) -----------------------------
 
         float camSpeed = 3.0f / _camera.Zoom;                    // unități de lume pe secundă
@@ -215,6 +222,12 @@ public class Game : GameWindow
         }
 
         // TODO (T5, facultativ): satelitul obiectului selectat
+        Matrix4 local = Matrix4.CreateScale(0.3f)
+              * Matrix4.CreateTranslation(1.2f, 0.0f, 0.0f)
+              * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(_unghiOrbita));
+        _shader.SetMatrix4("uModel", local * _scene[_selected].Transform.ModelMatrix);//T5:cand obiectul selectat e scalat si orbita se scaleaza odata cu el, satelitul se departeaza sau se apropie si se mareste sau se micsoreaza. Asta pentru ca matricea obiectului se aplica dupa cea a satelitului, deci scalarea lui se aplica si pe distanta de 1.2, nu doar pe forma.
+        _shader.SetColor("uTint", _satelit.Tint);
+        _satelit.Mesh.Draw();
 
         // 5. Afișăm cadrul terminat: back buffer <-> front buffer.
         SwapBuffers();
@@ -227,6 +240,7 @@ public class Game : GameWindow
         {
             obj.Dispose();
         }
+        _satelit.Dispose();
         _shader.Dispose();
 
         base.OnUnload();
