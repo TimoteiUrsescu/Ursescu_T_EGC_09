@@ -102,13 +102,23 @@ public class Game : GameWindow
         float dt = (float)args.Time;
         SceneObject sel = _scene[_selected];
 
-        const float moveSpeed = 2.0f;   // unități de lume pe secundă
+        float speedFactor = KeyboardState.IsKeyDown(Keys.LeftShift) ? 3.0f : 1.0f; // cu shift totul merge de 3 ori mai repede
+        float moveSpeed = 2.0f * speedFactor;   // unități de lume pe secundă
         if (KeyboardState.IsKeyDown(Keys.Left))  sel.Transform.Position.X -= moveSpeed * dt;
         if (KeyboardState.IsKeyDown(Keys.Right)) sel.Transform.Position.X += moveSpeed * dt;
         if (KeyboardState.IsKeyDown(Keys.Down))  sel.Transform.Position.Y -= moveSpeed * dt;
         if (KeyboardState.IsKeyDown(Keys.Up))    sel.Transform.Position.Y += moveSpeed * dt;
 
         // TODO (T2): Q / E rotesc obiectul, Z / X îl scalează
+        if (KeyboardState.IsKeyDown(Keys.Q)) sel.Transform.Rotation += 90.0f * speedFactor * dt;
+        if (KeyboardState.IsKeyDown(Keys.E)) sel.Transform.Rotation -= 90.0f * speedFactor * dt;
+
+        float factor = MathF.Pow(1.5f, speedFactor * dt);
+        float scale = sel.Transform.Scale.X;
+        if (KeyboardState.IsKeyDown(Keys.Z)) scale /= factor;
+        if (KeyboardState.IsKeyDown(Keys.X)) scale *= factor;//T2:scalarea se face prin inmultire pentru ca daca as scadea mereu aceeasi valoare scara ar ajunge la 0 si apoi negativa, iar obiectul ar disparea si ar aparea intors. Asa scara doar se micsoreaza tot mai putin si nu ajunge niciodata la 0, iar marirea si micsorarea sunt egale indiferent cat de mare e obiectul.
+        scale = Math.Clamp(scale, 0.1f, 10.0f);
+        sel.Transform.Scale = new Vector2(scale, scale);
 
         if (KeyboardState.IsKeyPressed(Keys.Tab)) _selected = (_selected + 1) % _scene.Count;
         if (KeyboardState.IsKeyPressed(Keys.O))   _camera.IsPerspective = !_camera.IsPerspective;
