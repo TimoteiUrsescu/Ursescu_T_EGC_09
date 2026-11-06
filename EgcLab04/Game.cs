@@ -24,6 +24,7 @@ public class Game : GameWindow
     // Starea aplicației (se modifică în OnUpdateFrame, se folosește în OnRenderFrame).
     private int _selected;            // indexul obiectului selectat în _scene (tasta Tab)
     private bool _wireframe;          // contur (true) sau plin (false)
+    private Vector2 _pivot = Vector2.Zero;
 
     // Contoare afișate în titlul ferestrei.
     private readonly string _baseTitle;
@@ -140,6 +141,22 @@ public class Game : GameWindow
             sel.Transform.Position = ScreenToWorld(MouseState.Position); // depth ramane la fel, schimb doar x si y
         }
         // TODO (T4, facultativ): clic dreapta = pivot; tasta P ținută = rotație în jurul pivotului
+        if (MouseState.IsButtonPressed(MouseButton.Right))
+        {
+            _pivot = ScreenToWorld(MouseState.Position); // clic dreapta pune pivotul
+        }
+
+        if (KeyboardState.IsKeyDown(Keys.P))
+        {
+            float unghi = 90.0f * speedFactor * dt;
+            // mut pivotul in origine, rotesc, apoi il pun inapoi
+            Matrix4 m = Matrix4.CreateTranslation(-_pivot.X, -_pivot.Y, 0)
+                      * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(unghi))
+                      * Matrix4.CreateTranslation(_pivot.X, _pivot.Y, 0);
+            Vector4 p = new Vector4(sel.Transform.Position.X, sel.Transform.Position.Y, 0, 1) * m;
+            sel.Transform.Position = new Vector2(p.X, p.Y);
+            sel.Transform.Rotation += unghi; // ca sa se uite mereu la fel spre pivot, ca Luna
+        }
 
         // --- Camera: tastatura și rotița (secțiunea 6.2) -----------------------------
 
