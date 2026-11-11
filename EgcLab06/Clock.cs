@@ -35,7 +35,8 @@ public sealed class Clock
         // TODO 6.1: timpul de joc
         //   1. limitați pasul real la MaxDelta (Math.Min / MathF.Min);
         //   2. în pauză pasul de joc este 0, altfel este pasul limitat înmulțit cu TimeScale.
-        DeltaTime = RealDeltaTime;   // provizoriu: timpul de joc = timpul real
+        float step = MathF.Min(RealDeltaTime, MaxDelta);
+        DeltaTime = Paused ? 0.0f : step * TimeScale;//T1 daca pasul nu ar fi limitat, dupa o blocare obiectul ar primi un dtt foarte mare si s-ar muta foarte mult dintr-un singur cadru si ar putea trece prin podea fara sa o atinga 
 
         TotalTime += DeltaTime;
     }
